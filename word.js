@@ -1,6 +1,6 @@
 var word = {
     lv1:[
-        { word: 'cover', example: 'คัฟ-เฟ่อร์' },
+        { word: 'hello', example: 'คัฟ-เฟ่อร์' },
     ],
     lv2:[
         { word: 'mentor', example: 'เม็น-ทอร์' },

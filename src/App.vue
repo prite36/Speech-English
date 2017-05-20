@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <button @click="speechTest">hi</button>
-    {{showText}}
+    <br>
+    <button @click="makeId">genkey</button>
+    <input type="text" v-model="key"/>
+    <button @click="joinRoom">connect</button>
+    {{showText}} <br>
+    {{showText2}}
   </div>
 </template>
 
@@ -11,20 +16,31 @@ export default {
   name: 'app',
   data () {
     return {
-      showText: ''
+      showText: '',
+      showText2: '',
+      key: ''
     }
   },
   sockets: {
     connect () {
       console.log('socket connected')
     },
-    get (val) {
-      console.log(val)
-      console.log('1')
+    yourLevel (val) {
       this.showText = val
+    },
+    rivalLevel (val) {
+      this.showText2 = val
     }
   },
   methods: {
+    joinRoom () {
+      var vm = this
+      this.$socket.emit('subscribe', vm.key)
+
+      // socket.on('conversation private post', function(data) {
+      //     //display data.message
+      // })
+    },
     test () {
       this.$socket.emit('set', 'test')
     },
@@ -34,7 +50,8 @@ export default {
       for (var i = 0; i < 20; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length))
       }
-      return text
+      this.key = text
+      return this.key
     },
     speechTest () {
       var vm = this
@@ -46,7 +63,11 @@ export default {
 
       recognition.onresult = function (event) {
         // console.log('You said: ', event.results[0][0].transcript)
-        vm.$socket.emit('get', event.results[0][0].transcript)
+        vm.$socket.emit('get', {
+          room: vm.key,
+          message: event.results[0][0].transcript
+        })
+        // vm.$socket.emit('get', event.results[0][0].transcript)
       }
     }
   },

@@ -5,13 +5,19 @@
     <div v-if="key === ''">
       <button @click="makeID">genkey</button>
       <input type="text" v-model="key"/>
-      <button @click="joinRoom">connect</button>
     </div>
+
     <div v-else >
       {{key}}
     </div>
-    {{showText}} <br>
-    {{showText2}}
+    <button @click="joinRoom()">connect</button>
+    <div v-if="player === 2" >
+      {{word}} <br>
+      {{howTo}} <br> <br><br>
+      {{showText}} <br>
+      {{showText2}}
+    </div>
+
   </div>
 </template>
 
@@ -23,7 +29,10 @@ export default {
     return {
       showText: '',
       showText2: '',
-      key: ''
+      key: '',
+      word: '',
+      howTo: '',
+      player: ''
     }
   },
   sockets: {
@@ -36,18 +45,27 @@ export default {
     rivalLevel (val) {
       this.showText2 = val
     },
-    getID (id) {
-      this.key = id
+    genRoom (data) {
+      this.key = data.id
       this.joinRoom()
+    },
+    players (data) {
+      if (data === -1) {
+        alert('More players')
+      } else {
+        this.word = data.word.word
+        this.howTo = data.word.example
+        this.player = data.player
+      }
     }
   },
   methods: {
     makeID () {
-      this.$socket.emit('getID')
+      this.$socket.emit('genRoom')
     },
     joinRoom () {
       var vm = this
-      this.$socket.emit('subscribe', vm.key)
+      this.$socket.emit('subscribe', {room: vm.key})
 
       // socket.on('conversation private post', function(data) {
       //     //display data.message

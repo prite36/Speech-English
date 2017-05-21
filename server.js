@@ -4,7 +4,7 @@ var bodyParser = require('body-parser')
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
 var word = require ('./word')
-var allRoom =[]
+var allRoom ={}
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
@@ -28,14 +28,32 @@ io.on('connection', function (socket) {
         who: 'rival'
     })
   })
-  socket.on('set', function (data) {
-    console.log(data)
+  socket.on('subscribe', function(data) {
+    console.log('joining room', data.room);
+    // console.log(allRoom[data.room][allRoom[data.room].length - 1])
+    var check = allRoom[data.room][allRoom[data.room].length - 1]
+    if (check === 0) {
+      allRoom[data.room][allRoom[data.room].length - 1] = 1
+      var inRoom = {
+        word: allRoom[data.room][0],
+        player: 1
+      }
+      socket.emit('players', inRoom)
+      socket.broadcast.to(data.room).emit('players', inRoom)
+    } else if (check === 1) {
+      allRoom[data.room][allRoom[data.room].length - 1] = 2
+      var inRoom = {
+        word: allRoom[data.room][0],
+        player: 2
+      }
+      socket.emit('players', inRoom)
+      socket.broadcast.to(data.room).emit('players', inRoom)
+    } else {
+      socket.emit('players', -1)
+    }
+    socket.join(data.room);
   })
-  socket.on('subscribe', function(room) {
-    console.log('joining room', room);
-    socket.join(room);
-  })
-  socket.on('getID', function (data) {
+  socket.on('genRoom', function (data) {
     // console.log("getid");
     var genWord = []
     for (var i = 0; i < word.length; i++) {
@@ -43,10 +61,16 @@ io.on('connection', function (socket) {
       genWord[i] = ( word[i][posi])
     }
     genWord[genWord.length] = Date.now()
+    genWord[genWord.length] = 0
     var id = makeId()
-    allRoom.push({[id]: genWord})
-    console.log(allRoom);
-    socket.emit('getID', id)
+    // allRoom.push({[id]: genWord})
+    allRoom[id] = genWord
+    // console.log(allRoom);
+    var waiting = {
+      id,
+      player: genWord[genWord.length - 1]
+    }
+    socket.emit('genRoom', waiting)
 
   })
 })

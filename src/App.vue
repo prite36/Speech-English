@@ -5,7 +5,7 @@
     <button @click="makeId">genkey</button>
     <input type="text" v-model="key"/>
     <button @click="joinRoom">connect</button>
-    {{showText}} <br>
+    {{showText}} <br><br>
     {{showText2}}
   </div>
 </template>

@@ -18,14 +18,23 @@ io.on('connection', function (socket) {
   socket.on('get', function (data) {
     // socket.emit('get', data)
     // console.log(data)
+    console.log(data);
+    var inRoom = {
+      key: data.room,
+      word: allRoom[data.room][data.stat],
+      player: allRoom[data.room][allRoom[data.room].length - 1]
+    }
+    socket.emit('players', inRoom)
     console.log('sending room post', data.room);
     socket.emit('yourLevel', {
         message: data.message,
-        who: 'me'
+        who: 'me',
+        level: data.stat,
     })
     socket.broadcast.to(data.room).emit('rivalLevel', {
         message: data.message,
-        who: 'rival'
+        who: 'rival',
+        level: data.stat
     })
   })
   socket.on('subscribe', function(data) {
@@ -35,6 +44,7 @@ io.on('connection', function (socket) {
     if (check === 0) {
       allRoom[data.room][allRoom[data.room].length - 1] = 1
       var inRoom = {
+        key: data.room,
         word: allRoom[data.room][0],
         player: 1
       }
@@ -43,6 +53,7 @@ io.on('connection', function (socket) {
     } else if (check === 1) {
       allRoom[data.room][allRoom[data.room].length - 1] = 2
       var inRoom = {
+        key: data.room,
         word: allRoom[data.room][0],
         player: 2
       }
@@ -61,6 +72,7 @@ io.on('connection', function (socket) {
       genWord[i] = ( word[i][posi])
     }
     genWord[genWord.length] = Date.now()
+    genWord[genWord.length] = false
     genWord[genWord.length] = 0
     var id = makeId()
     // allRoom.push({[id]: genWord})
@@ -72,6 +84,17 @@ io.on('connection', function (socket) {
     }
     socket.emit('genRoom', waiting)
 
+  })
+  socket.on('remove', function (data) {
+    // console.log("REMOVE " + data.room);
+    // console.log(allRoom[data.room])
+    // console.log(allRoom[data.room][allRoom[data.room].length - 1])
+    if (allRoom[data.room][allRoom[data.room].length - 1] === 2) {
+      allRoom[data.room][allRoom[data.room].length - 1] = 3
+    } else {
+      delete allRoom[data.room]
+    }
+     console.log(allRoom);
   })
 })
 function makeId () {

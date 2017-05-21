@@ -4,7 +4,7 @@ var bodyParser = require('body-parser')
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
 var word = require ('./word')
-
+var allRoom =[]
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
@@ -35,8 +35,29 @@ io.on('connection', function (socket) {
     console.log('joining room', room);
     socket.join(room);
   })
-})
+  socket.on('getID', function (data) {
+    // console.log("getid");
+    var genWord = []
+    for (var i = 0; i < word.length; i++) {
+      var posi = Math.floor(Math.random() * word[i].length)
+      genWord[i] = ( word[i][posi])
+    }
+    genWord[genWord.length] = Date.now()
+    var id = makeId()
+    allRoom.push({[id]: genWord})
+    console.log(allRoom);
+    socket.emit('getID', id)
 
+  })
+})
+function makeId () {
+    var text = ''
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    for (var i = 0; i < 20; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length))
+    }
+    return text
+}
 app.set('port', (process.env.PORT || 3000))
 server.listen(app.get('port'), function () {
   console.log('Express server listening on port %d in %s mode', this.address().port, app.settings.env)

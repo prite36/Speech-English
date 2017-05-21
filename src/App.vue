@@ -2,10 +2,15 @@
   <div id="app">
     <button @click="speechTest">hi</button>
     <br>
-    <button @click="makeId">genkey</button>
-    <input type="text" v-model="key"/>
-    <button @click="joinRoom">connect</button>
-    {{showText}} <br><br>
+    <div v-if="key === ''">
+      <button @click="makeID">genkey</button>
+      <input type="text" v-model="key"/>
+      <button @click="joinRoom">connect</button>
+    </div>
+    <div v-else >
+      {{key}}
+    </div>
+    {{showText}} <br>
     {{showText2}}
   </div>
 </template>
@@ -30,9 +35,16 @@ export default {
     },
     rivalLevel (val) {
       this.showText2 = val
+    },
+    getID (id) {
+      this.key = id
+      this.joinRoom()
     }
   },
   methods: {
+    makeID () {
+      this.$socket.emit('getID')
+    },
     joinRoom () {
       var vm = this
       this.$socket.emit('subscribe', vm.key)
@@ -43,15 +55,6 @@ export default {
     },
     test () {
       this.$socket.emit('set', 'test')
-    },
-    makeId () {
-      var text = ''
-      var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-      for (var i = 0; i < 20; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length))
-      }
-      this.key = text
-      return this.key
     },
     speechTest () {
       var vm = this

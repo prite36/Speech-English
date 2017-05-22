@@ -12,6 +12,19 @@
     </div>
     <div v-else-if="page === 2" class="page">
       2
+      <button @click="speechTest">hi</button>
+      {{waitingTime}}
+      {{nameMe}}
+      {{word}} <br> {{level + 1}} <br>
+      {{howTo}} <br> <br><br>
+      {{showText}} <br>
+      <div style="float: left;" v-for="i in stepMe">
+        <img v-if="i !== -1" src="../static/images/run.gif" width= "20px" >
+        <img v-else src="../static/images/circle.png" width= "20px">
+      </div>
+      God:
+      <input type="text"  v-model="testSpeak">
+      <button @click="testSend()">OK</button>
       <button type="button" @click="changepage(1)">Home</button><br><br>
     </div>
     <div v-else-if="page === 3" class="page">
@@ -95,7 +108,8 @@ export default {
       waiting: '',
       waitingTime: 1,
       checkKey: false,
-      match: ''
+      match: '',
+      words: []
     }
   },
   sockets: {
@@ -163,6 +177,11 @@ export default {
         }, 1000)
         this.speechTest()
       }
+    },
+    singleWords (data) {
+      this.words = data
+      this.word = this.words[0].word
+      this.howTo = this.words[0].example
     }
   },
   methods: {
@@ -190,17 +209,18 @@ export default {
         this.waiting = ''
         this.waitingTime = 1
         this.checkKey = false
+        this.words = []
       } else if (this.page === 2) {
-
+        this.$socket.emit('singleWords')
       } else if (this.page === 3) {
         if (this.level === 9 && this.levelRival < 9) {
           this.match = 'You Win !!'
         } else if (this.level === 9 && this.levelRival === 9) {
-          this.match = 'You Good! but ' + this.nameRival + 'faster than you.'
-        } elseif (this.player === 2) {
+          this.match = 'You Good! but ' + this.nameRival + ' faster than you.'
+        } else if (this.player === 2) {
           this.match = this.nameMe.toString() + ' Lose ' + this.nameRival
         } else {
-          this.match = this.nameMe.toString() + ' ' + this.level + ' - ' + this.levelRival + ' ' + this.nameRival
+          this.match = this.nameMe.toString() + ' ' + (this.level + 1) + ' - ' + (this.levelRival + 1) + ' ' + this.nameRival
         }
         // this.player = 0
         this.readyMe = false
@@ -208,6 +228,10 @@ export default {
         this.checkKey = false
         this.key = ''
         this.nameRival = ''
+        this.level = 0
+        this.levelRival = 0
+        this.stepMe = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        this.stepRival = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
       } else if (this.page === 4) {
       }
     },
@@ -260,11 +284,34 @@ export default {
         recognition.onresult = function (event) {
           // console.log('You said: ', event.results[0][0].transcript)
           var stat = vm.checkWord(event.results[0][0].transcript)
-          vm.$socket.emit('get', {
-            room: vm.key,
-            message: event.results[0][0].transcript,
-            stat: stat
-          })
+          if (this.page === 4) {
+            if (this.level === 9) {
+              vm.leaving()
+              vm.page = 3
+              vm.changepage(vm.page)
+            } else {
+              vm.$socket.emit('get', {
+                room: vm.key,
+                message: event.results[0][0].transcript,
+                stat: stat
+              })
+            }
+          } else {
+            if (event.results[0][0].transcript === this.words[this.level].word) {
+              if (this.level === 9) {
+                this.stepMe[this.stepMe.length - 1] = -1
+                this.stepMe[0] = 0
+                this.level = 0
+              } else {
+                this.level++
+                this.word = this.words[this.level].word
+                this.example = this.words[this.level].example
+                this.stepMe[this.level - 1] = -1
+                this.stepMe[this.level] = this.level
+              }
+            }
+            recognition.start()
+          }
           // vm.$socket.emit('get', event.results[0][0].transcript)
         }
       }
@@ -274,6 +321,10 @@ export default {
       if (val.toLowerCase() === this.word) {
         this.speechTest()
         this.waitingTime += 3
+        if (this.level === 9) {
+          this.page = 3
+          this.changepage(this.page)
+        }
         return this.level + 1
       } else {
         this.speechTest()
@@ -281,14 +332,38 @@ export default {
       }
     },
     testSend () {
+      this.testSpeak = this.word
       var vm = this
-      console.log(vm.key)
       var stat = vm.checkWord(vm.testSpeak)
-      vm.$socket.emit('get', {
-        room: vm.key,
-        message: this.testSpeak,
-        stat: stat
-      })
+      if (this.page === 4) {
+        if (this.level === 9) {
+          vm.leaving()
+          vm.page = 3
+          vm.changepage(vm.page)
+        } else {
+          vm.$socket.emit('get', {
+            room: vm.key,
+            message: this.testSpeak,
+            stat: stat
+          })
+        }
+      } else {
+        if (this.testSpeak === this.words[this.level].word) {
+          console.log('Single')
+          if (this.level === 9) {
+            this.$socket.emit('singleWords')
+            this.stepMe[this.stepMe.length - 1] = -1
+            this.stepMe[0] = 0
+            this.level = 0
+          } else {
+            this.level++
+            this.word = this.words[this.level].word
+            this.example = this.words[this.level].example
+            this.stepMe[this.level - 1] = -1
+            this.stepMe[this.level] = this.level
+          }
+        }
+      }
     }
   },
   mounted () {

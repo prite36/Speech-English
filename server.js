@@ -119,6 +119,14 @@ io.on('connection', function (socket) {
     }
      console.log(allRoom);
   })
+  socket.on('singleWords', function () {
+    var genWord = []
+    for (var i = 0; i < word.length; i++) {
+      var posi = Math.floor(Math.random() * word[i].length)
+      genWord[i] = ( word[i][posi])
+    }
+    socket.emit('singleWords', genWord)
+  })
 })
 function makeId () {
     var text = ''

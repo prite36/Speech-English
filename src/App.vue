@@ -1,36 +1,73 @@
 <template>
   <div id="app">
-    <button @click="speechTest">hi</button>
-    <br>
-    <div v-if="key === ''">
-      <button @click="makeID">genkey</button>
-      <input type="text" v-model="key"/>
+    <div v-if="page === 0" class="page">
+      0
+      <button type="button" @click="changepage(1)">Start</button><br><br>
+      <input type="text" v-model="nameMe"value="">
+    </div>
+    <div v-else-if="page === 1" class="page">
+      1
+      <div style="border:3px solid #73AD21; width:30%; hight:30%;" @click="changepage(2)">Page2</div><br><br>
+      <div style="border:3px solid #73AD21; width:30%; hight:30%;" @click="changepage(3)">Page3</div><br><br>
+    </div>
+    <div v-else-if="page === 2" class="page">
+      2
+      <button type="button" @click="changepage(1)">Home</button><br><br>
+    </div>
+    <div v-else-if="page === 3" class="page">
+      3
+      {{match}}
+      <!-- {{nameMe}}
+      {{nameRival}} -->
+      <div v-if="!checkKey">
+        <button @click="makeID">genkey</button>
+        <input type="text" v-model="key"/>
+      </div>
+      <div v-else >
+        {{key}}
+      </div>
+      <button @click="joinRoom()">connect</button><br><br>
+      <div v-if="nameRival !== '' &&  key !== ''">
+        <button v-if="!readyMe" type="button" @click="startGame(true)">Ready</button>
+        <button v-else type="button" @click="startGame(false)">Cancle</button><br><br>
+      </div>
+      <button type="button" @click="changepage(1)">Home</button><br><br>
+    </div>
+    <div v-else-if="page === 4" class="page">
+      4
+      {{nameMe}}
+      {{nameRival}}
+        <button @click="speechTest">hi</button>
+        <br>
+
+        <div v-if="player !== 0 && player > 1"   >
+          {{waitingTime}}
+          {{word}} <br> {{level + 1}} <br>
+          {{howTo}} <br> <br><br>
+          {{showText}} <br>
+          {{showText2}}
+        </div>
+        <div style="float: left;" v-for="i in stepMe">
+          <img v-if="i !== -1" src="../static/images/run.gif" width= "20px" >
+          <img v-else src="../static/images/circle.png" width= "20px">
+        </div>
+        <br>
+        <div style="float: left;" v-for="i in stepRival">
+          <img v-if="i !== -1 && player === 2" src="../static/images/run.gif" width= "20px" >
+          <img v-else-if="i !== -1 && player > 2" src="../static/images/fall.gif" width= "20px" >
+          <img v-else src="../static/images/circle.png" width= "20px">
+        </div>
+        <br>
+        God:
+        <input type="text"  v-model="testSpeak">
+        <button @click="testSend()">OK</button>
+      <button type="button" @click="changepage(1)">Home</button><br><br>
+    </div>
+    <div v-else-if="page === 5" class="page">
+      5
+      <button type="button" @click="changepage(1)">Home</button><br><br>
     </div>
 
-    <div v-else >
-      {{key}}
-    </div>
-    <button @click="joinRoom()">connect</button>
-    <div v-if="player !== 0" >
-      {{word}} <br> {{level + 1}} <br>
-      {{howTo}} <br> <br><br>
-      {{showText}} <br>
-      {{showText2}}
-    </div>
-    <div style="float: left;" v-for="i in stepMe">
-      <img v-if="i !== -1" src="../static/images/run.gif" width= "20px" >
-      <img v-else src="../static/images/circle.png" width= "20px">
-    </div>
-    <br>
-    <div style="float: left;" v-for="i in stepRival">
-      <img v-if="i !== -1 && player === 2" src="../static/images/run.gif" width= "20px" >
-      <img v-else-if="i !== -1 && player > 2" src="../static/images/fall.gif" width= "20px" >
-      <img v-else src="../static/images/circle.png" width= "20px">
-    </div>
-    <br>
-    God:
-    <input type="text"  v-model="testSpeak">
-    <button @click="testSend()">OK</button>
   </div>
 </template>
 
@@ -39,6 +76,11 @@ export default {
   name: 'app',
   data () {
     return {
+      page: 0,
+      nameMe: '',
+      nameRival: '',
+      readyMe: false,
+      readyRival: false,
       showText: '',
       showText2: '',
       key: '',
@@ -49,12 +91,34 @@ export default {
       level: 0,
       levelRival: 0,
       stepMe: [0, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      stepRival: [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+      stepRival: [0, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      waiting: '',
+      waitingTime: 1,
+      checkKey: false,
+      match: ''
     }
   },
   sockets: {
     connect () {
       console.log('socket connected')
+    },
+    getName (name) {
+      var vm = this
+      console.log('name1 ' + name.name)
+      if (this.nameRival === '') {
+        console.log('PASS')
+        var delay = setInterval(() => {
+          this.$socket.emit('setName', {name: vm.nameMe, room: vm.key})
+          clearInterval(delay)
+        }, 1000)
+      }
+      this.nameRival = name.name
+    },
+    getReady (bool) {
+      this.readyRival = bool
+      if (this.readyMe && this.readyRival) {
+        this.page = 4
+      }
     },
     yourLevel (val) {
       this.showText = val
@@ -73,22 +137,93 @@ export default {
       this.joinRoom()
     },
     players (data) {
+      console.log(data)
       if (data === -1) {
         alert('More players')
+      } else if (typeof data === 'number') {
+        this.player = 3
       } else {
         this.key = data.key
         this.word = data.word.word
         this.howTo = data.word.example
         this.player = data.player
       }
+    },
+    statusPlayer (bool) {
+      var vm = this
+      if (bool) {
+        vm.waitingTime = 20
+        vm.waiting = setInterval(() => {
+          vm.waitingTime--
+          if (vm.waitingTime === 0) {
+            vm.leaving()
+            vm.page = 3
+            vm.changepage(vm.page)
+          }
+        }, 1000)
+        this.speechTest()
+      }
     }
   },
   methods: {
+    changepage (page) {
+      // var vm = this
+      this.page = page
+      if (this.page === 0) {
+
+      } else if (this.page === 1) {
+        this.leaving()
+        this.nameRival = ''
+        this.readyMe = false
+        this.readyRival = false
+        this.showText = ''
+        this.showText2 = ''
+        this.key = ''
+        this.word = ''
+        this.howTo = ''
+        this.player = ''
+        this.testSpeak = ''
+        this.level = 0
+        this.levelRival = 0
+        this.stepMe = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        this.stepRival = [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        this.waiting = ''
+        this.waitingTime = 1
+        this.checkKey = false
+      } else if (this.page === 2) {
+
+      } else if (this.page === 3) {
+        if (this.level === 9 && this.levelRival < 9) {
+          this.match = 'You Win !!'
+        } else if (this.level === 9 && this.levelRival === 9) {
+          this.match = 'You Good! but ' + this.nameRival + 'faster than you.'
+        } elseif (this.player === 2) {
+          this.match = this.nameMe.toString() + ' Lose ' + this.nameRival
+        } else {
+          this.match = this.nameMe.toString() + ' ' + this.level + ' - ' + this.levelRival + ' ' + this.nameRival
+        }
+        // this.player = 0
+        this.readyMe = false
+        this.readyRival = false
+        this.checkKey = false
+        this.key = ''
+        this.nameRival = ''
+      } else if (this.page === 4) {
+      }
+    },
+    startGame (bool) {
+      var vm = this
+      this.readyMe = bool
+      vm.$socket.emit('getReady', {room: vm.key, ready: bool})
+      if (this.readyMe && this.readyRival) {
+        this.page = 4
+      }
+    },
     leaving () {
       var vm = this
-      alert(vm.key)
+      clearInterval(vm.waiting)
       if (vm.key !== '') {
-        vm.$socket.emit('remove', {room: vm.key})
+        vm.$socket.emit('remove', {room: vm.key, level: this.level})
       }
     },
     makeID () {
@@ -96,8 +231,9 @@ export default {
     },
     joinRoom () {
       var vm = this
-      this.$socket.emit('subscribe', {room: vm.key})
-
+      this.checkKey = true
+      this.$socket.emit('setName', {name: vm.nameMe, room: vm.key})
+      this.$socket.emit('subscribe', {room: vm.key, level: this.level})
       // socket.on('conversation private post', function(data) {
       //     //display data.message
       // })
@@ -107,28 +243,40 @@ export default {
     },
     speechTest () {
       var vm = this
-      var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)()
-      recognition.lang = 'th'
-      recognition.interimResults = false
-      recognition.maxAlternatives = 5
-      recognition.start()
+      if (this.waitingTime > 0) {
+        var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)()
+        recognition.lang = 'en-US'
+        recognition.interimResults = false
+        recognition.onspeechstart = function () {
+          console.log('Speech  detected')
+        }
+        recognition.onspeechend = function () {
+          console.log('Speech stopped')
+        }
+        // recognition.continuous = true
+        recognition.maxAlternatives = 5
+        recognition.start()
 
-      recognition.onresult = function (event) {
-        // console.log('You said: ', event.results[0][0].transcript)
-        var stat = vm.checkWord(event.results[0][0].transcript)
-        vm.$socket.emit('get', {
-          room: vm.key,
-          message: event.results[0][0].transcript,
-          stat: stat
-        })
-        // vm.$socket.emit('get', event.results[0][0].transcript)
+        recognition.onresult = function (event) {
+          // console.log('You said: ', event.results[0][0].transcript)
+          var stat = vm.checkWord(event.results[0][0].transcript)
+          vm.$socket.emit('get', {
+            room: vm.key,
+            message: event.results[0][0].transcript,
+            stat: stat
+          })
+          // vm.$socket.emit('get', event.results[0][0].transcript)
+        }
       }
     },
     checkWord (val) {
       console.log(val)
       if (val.toLowerCase() === this.word) {
+        this.speechTest()
+        this.waitingTime += 3
         return this.level + 1
       } else {
+        this.speechTest()
         return this.level
       }
     },

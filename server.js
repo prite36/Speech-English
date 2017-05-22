@@ -15,9 +15,27 @@ app.use(bodyParser.json())
 app.use(express.static('dist'))
 
 io.on('connection', function (socket) {
+  socket.on('setName', function(data) {
+    console.log(data)
+    socket.broadcast.to(data.room).emit('getName', {
+      name: data.name,
+    })
+  }),
+  socket.on('getReady', function(data) {
+    console.log(data)
+    socket.broadcast.to(data.room).emit('getReady',data.ready)
+    if (data.ready) {
+      allRoom[data.room][allRoom[data.room].length - 2]++
+    } else {
+      allRoom[data.room][allRoom[data.room].length - 2]--
+    }
+
+    if (allRoom[data.room][allRoom[data.room].length - 2] === 2) {
+      socket.emit('statusPlayer',true)
+      socket.broadcast.to(data.room).emit('statusPlayer', true)
+    }
+  }),
   socket.on('get', function (data) {
-    // socket.emit('get', data)
-    // console.log(data)
     console.log(data);
     var inRoom = {
       key: data.room,
@@ -38,31 +56,33 @@ io.on('connection', function (socket) {
     })
   })
   socket.on('subscribe', function(data) {
-    console.log('joining room', data.room);
-    // console.log(allRoom[data.room][allRoom[data.room].length - 1])
-    var check = allRoom[data.room][allRoom[data.room].length - 1]
-    if (check === 0) {
-      allRoom[data.room][allRoom[data.room].length - 1] = 1
-      var inRoom = {
-        key: data.room,
-        word: allRoom[data.room][0],
-        player: 1
+    if (allRoom[data.room]) {
+      console.log('joining room', data.room);
+      // console.log(allRoom[data.room][allRoom[data.room].length - 1])
+      var check = allRoom[data.room][allRoom[data.room].length - 1]
+      if (check === 0) {
+        allRoom[data.room][allRoom[data.room].length - 1] = 1
+        var inRoom = {
+          key: data.room,
+          word: allRoom[data.room][0],
+          player: 1
+        }
+        socket.emit('players', inRoom)
+        socket.broadcast.to(data.room).emit('players', inRoom)
+      } else if (check === 1) {
+        allRoom[data.room][allRoom[data.room].length - 1] = 2
+        var inRoom = {
+          key: data.room,
+          word: allRoom[data.room][0],
+          player: 2
+        }
+        socket.emit('players', inRoom)
+        socket.broadcast.to(data.room).emit('players', inRoom)
+      } else {
+        socket.emit('players', -1)
       }
-      socket.emit('players', inRoom)
-      socket.broadcast.to(data.room).emit('players', inRoom)
-    } else if (check === 1) {
-      allRoom[data.room][allRoom[data.room].length - 1] = 2
-      var inRoom = {
-        key: data.room,
-        word: allRoom[data.room][0],
-        player: 2
-      }
-      socket.emit('players', inRoom)
-      socket.broadcast.to(data.room).emit('players', inRoom)
-    } else {
-      socket.emit('players', -1)
+      socket.join(data.room);
     }
-    socket.join(data.room);
   })
   socket.on('genRoom', function (data) {
     // console.log("getid");
@@ -72,7 +92,7 @@ io.on('connection', function (socket) {
       genWord[i] = ( word[i][posi])
     }
     genWord[genWord.length] = Date.now()
-    genWord[genWord.length] = false
+    genWord[genWord.length] = 0
     genWord[genWord.length] = 0
     var id = makeId()
     // allRoom.push({[id]: genWord})
@@ -89,10 +109,13 @@ io.on('connection', function (socket) {
     // console.log("REMOVE " + data.room);
     // console.log(allRoom[data.room])
     // console.log(allRoom[data.room][allRoom[data.room].length - 1])
-    if (allRoom[data.room][allRoom[data.room].length - 1] === 2) {
-      allRoom[data.room][allRoom[data.room].length - 1] = 3
-    } else {
-      delete allRoom[data.room]
+    if (allRoom[data.room]) {
+      if (allRoom[data.room][allRoom[data.room].length - 1] === 2) {
+        allRoom[data.room][allRoom[data.room].length - 1] = 3
+        socket.broadcast.to(data.room).emit('players', data.level)
+      } else {
+        delete allRoom[data.room]
+      }
     }
      console.log(allRoom);
   })

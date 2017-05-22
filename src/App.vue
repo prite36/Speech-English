@@ -3,7 +3,7 @@
     <div v-if="page === 0" class="page">
       0
       <button type="button" @click="changepage(1)">Start</button><br><br>
-      <input type="text" v-model="nameMe"value="">
+      <input type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10">
     </div>
     <div v-else-if="page === 1" class="page">
       1
@@ -43,6 +43,9 @@
       <div v-if="nameRival !== '' &&  key !== ''">
         <button v-if="!readyMe" type="button" @click="startGame(true)">Ready</button>
         <button v-else type="button" @click="startGame(false)">Cancle</button><br><br>
+      </div>
+      <div v-for="i in events">
+        {{i}}
       </div>
       <button type="button" @click="changepage(1)">Home</button><br><br>
     </div>
@@ -85,6 +88,20 @@
 </template>
 
 <script>
+import firebase from 'firebase'
+var config = {
+  apiKey: 'AIzaSyAwb3kvmYTLSynieFFhN3GZfgU8BUi69ck',
+  authDomain: 'speech-english.firebaseapp.com',
+  databaseURL: 'https://speech-english.firebaseio.com',
+  projectId: 'speech-english',
+  storageBucket: 'speech-english.appspot.com',
+  messagingSenderId: '255281834477'
+}
+firebase.initializeApp(config)
+
+var events = firebase.database().ref('events')
+// var ranking = firebase.database().ref('ranking')
+
 export default {
   name: 'app',
   data () {
@@ -109,7 +126,9 @@ export default {
       waitingTime: 1,
       checkKey: false,
       match: '',
-      words: []
+      words: [],
+      events: [],
+      allData: []
     }
   },
   sockets: {
@@ -151,7 +170,7 @@ export default {
       this.joinRoom()
     },
     players (data) {
-      console.log(data)
+      // console.log(data)
       if (data === -1) {
         alert('More players')
       } else if (typeof data === 'number') {
@@ -166,7 +185,7 @@ export default {
     statusPlayer (bool) {
       var vm = this
       if (bool) {
-        vm.waitingTime = 20
+        vm.waitingTime = 10
         vm.waiting = setInterval(() => {
           vm.waitingTime--
           if (vm.waitingTime === 0) {
@@ -186,11 +205,14 @@ export default {
   },
   methods: {
     changepage (page) {
-      // var vm = this
+      var vm = this
       this.page = page
       if (this.page === 0) {
 
       } else if (this.page === 1) {
+        if (this.nameMe === '') {
+          this.nameMe = 'Guest'
+        }
         this.leaving()
         this.nameRival = ''
         this.readyMe = false
@@ -212,15 +234,32 @@ export default {
         this.words = []
       } else if (this.page === 2) {
         this.$socket.emit('singleWords')
+        vm.waitingTime = 10
+        vm.waiting = setInterval(() => {
+          vm.waitingTime--
+          if (vm.waitingTime === 0) {
+            vm.leaving()
+          }
+        }, 1000)
+        this.speechTest()
       } else if (this.page === 3) {
+        clearInterval(vm.waiting)
         if (this.level === 9 && this.levelRival < 9) {
           this.match = 'You Win !!'
         } else if (this.level === 9 && this.levelRival === 9) {
           this.match = 'You Good! but ' + this.nameRival + ' faster than you.'
+          // firebase.database().ref('events/').remove()
+          firebase.database().ref('events/').update({
+            last: vm.nameMe.toString() + ' ' + (vm.level + 1) + ' - ' + (vm.levelRival + 1) + ' ' + vm.nameRival
+          })
         } else if (this.player === 2) {
           this.match = this.nameMe.toString() + ' Lose ' + this.nameRival
+          firebase.database().ref('events/').update({
+            last: vm.nameMe.toString() + ' ' + (vm.level + 1) + ' - ' + (vm.levelRival + 1) + ' ' + vm.nameRival
+          })
         } else {
           this.match = this.nameMe.toString() + ' ' + (this.level + 1) + ' - ' + (this.levelRival + 1) + ' ' + this.nameRival
+          // firebase.database().ref('events/').remove()
         }
         // this.player = 0
         this.readyMe = false
@@ -296,9 +335,11 @@ export default {
                 stat: stat
               })
             }
-          } else {
+          } else if (this.page === 2) {
             if (event.results[0][0].transcript === this.words[this.level].word) {
+              this.waitingTime += 3
               if (this.level === 9) {
+                this.$socket.emit('singleWords')
                 this.stepMe[this.stepMe.length - 1] = -1
                 this.stepMe[0] = 0
                 this.level = 0
@@ -317,7 +358,7 @@ export default {
       }
     },
     checkWord (val) {
-      console.log(val)
+      // console.log(val)
       if (val.toLowerCase() === this.word) {
         this.speechTest()
         this.waitingTime += 3
@@ -334,22 +375,23 @@ export default {
     testSend () {
       this.testSpeak = this.word
       var vm = this
-      var stat = vm.checkWord(vm.testSpeak)
       if (this.page === 4) {
         if (this.level === 9) {
           vm.leaving()
           vm.page = 3
           vm.changepage(vm.page)
         } else {
+          var stat = vm.checkWord(vm.testSpeak)
           vm.$socket.emit('get', {
             room: vm.key,
             message: this.testSpeak,
             stat: stat
           })
         }
-      } else {
+      } else if (this.page === 2) {
+        console.log('test')
         if (this.testSpeak === this.words[this.level].word) {
-          console.log('Single')
+          this.waitingTime += 3
           if (this.level === 9) {
             this.$socket.emit('singleWords')
             this.stepMe[this.stepMe.length - 1] = -1
@@ -368,9 +410,19 @@ export default {
   },
   mounted () {
     window.addEventListener('beforeunload', this.leaving)
-    // window.beforeunload = this.leaving
-    // window.onblur = this.leaving
-    // this.$socket.emit('get', 'id')
+    var vm = this
+    events.on('child_added', function (snapshot) {
+      var item = snapshot.val()
+      vm.events[0] = item
+      // console.log(vm.events)
+    })
+    events.on('child_changed', function (snapshot) {
+      var item = snapshot.val()
+      if (vm.events.length === 4) {
+        vm.events = vm.events.slice(1, 3)
+      }
+      vm.events[vm.events.length] = item
+    })
   }
 }
 </script>

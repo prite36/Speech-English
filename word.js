@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 var word = [
     [
         { word: 'hello', example: 'เฮล-โล' },
@@ -59,38 +58,6 @@ var word = [
       { word: 'antithesis', example: 'แอน-ทิ-เธ-ซิซ' },
       { word: 'obfuscate', example: 'ออฟ-ฟุส-เกต' },
       { word: 'legerdemain', example: 'เลจ-เจอร์-เดอ-เมน' },
-=======
-var word = {
-    lv1:[
-        { word: 'hello', example: 'เฮ็ลโล์' },
-    ],
-    lv2:[
-        { word: 'mentor', example: 'เม็น-ทอร์' },
-    ],
-    lv3:[
-        { word: 'reason', example: 'รี-ซึ่น' },
-    ],
-    lv4:[
-        { word: 'honest', example: 'อ๊อน-เน็สท' },
-    ],
-    lv5:[
-        { word: 'oil', example: 'โอย-เยิ่ล' },
-    ],
-    lv6:[
-        { word: 'raspberry', example: 'รัช-แบ-รี่' },
-    ],
-    lv7:[
-        { word: 'method', example: 'เม-เธิร์ด' },
-    ],
-    lv8:[
-        { word: 'equinox', example: 'อี-กั้ว-น๊อคซ' },
-    ],
-    lv9:[
-        { word: 'enfranchise', example: 'อิน-เฟรน-ชายส์' },
-    ],
-    lv10:[
-        { word: 'plagiarize', example: 'เพล-จึ-ไรซ์' },
->>>>>>> 1c0f4fd917333649feb003d0e66af7e1b7ccf8cd
     ]
 ]
 module.exports = word

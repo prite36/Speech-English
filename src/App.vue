@@ -15,7 +15,7 @@
       <button @click="speechTest">hi</button>
       {{waitingTime}}
       {{nameMe}}
-      {{word}} <br> {{level + 1}} <br>
+      {{word}} <br> {{myLv}} <br>
       {{howTo}} <br> <br><br>
       {{showText}} <br>
       <div style="float: left;" v-for="i in stepMe">
@@ -26,6 +26,11 @@
       <input type="text"  v-model="testSpeak">
       <button @click="testSend()">OK</button>
       <button type="button" @click="changepage(1)">Home</button><br><br>
+      <div v-for="(i, index) in ranking2">
+        {{index + 1}}
+        {{i.name}}
+        {{i.lv}}
+      </div>
     </div>
     <div v-else-if="page === 3" class="page">
       3
@@ -45,7 +50,7 @@
         <button v-else type="button" @click="startGame(false)">Cancle</button><br><br>
       </div>
       <div v-for="i in events">
-        {{i}}
+        {{i.item}}
       </div>
       <button type="button" @click="changepage(1)">Home</button><br><br>
     </div>
@@ -89,6 +94,8 @@
 
 <script>
 import firebase from 'firebase'
+import _ from 'lodash'
+console.log(_.random(20))
 var config = {
   apiKey: 'AIzaSyAwb3kvmYTLSynieFFhN3GZfgU8BUi69ck',
   authDomain: 'speech-english.firebaseapp.com',
@@ -99,8 +106,8 @@ var config = {
 }
 firebase.initializeApp(config)
 
-var events = firebase.database().ref('events')
-// var ranking = firebase.database().ref('ranking')
+var Events = firebase.database().ref('events')
+var Ranking = firebase.database().ref('ranking')
 
 export default {
   name: 'app',
@@ -128,7 +135,10 @@ export default {
       match: '',
       words: [],
       events: [],
-      allData: []
+      allData: [],
+      ranking: [],
+      myLv: 1,
+      lvSort: []
     }
   },
   sockets: {
@@ -232,12 +242,38 @@ export default {
         this.waitingTime = 1
         this.checkKey = false
         this.words = []
+        this.myLv = 1
       } else if (this.page === 2) {
         this.$socket.emit('singleWords')
         vm.waitingTime = 10
         vm.waiting = setInterval(() => {
           vm.waitingTime--
           if (vm.waitingTime === 0) {
+            var temp = {
+              id: Math.floor(Math.random() * 101),
+              lv: 99999
+            }
+            if (vm.ranking.length < 10) {
+              firebase.database().ref('ranking/' + temp.id).update({
+                name: vm.nameMe,
+                lv: vm.myLv
+              })
+            } else {
+              var checkNoy = vm.ranking.find(rank => rank.lv < vm.myLv)
+              if (checkNoy) {
+                for (var i = 0; i < vm.ranking.length; i++) {
+                  if (vm.ranking[i].lv < temp.lv) {
+                    temp.id = vm.ranking[i].id
+                    temp.lv = vm.ranking[i].lv
+                  }
+                }
+                firebase.database().ref('ranking/' + temp.id).remove()
+                firebase.database().ref('ranking/' + temp.id).update({
+                  name: vm.nameMe,
+                  lv: vm.myLv
+                })
+              }
+            }
             vm.leaving()
           }
         }, 1000)
@@ -252,7 +288,8 @@ export default {
           firebase.database().ref('events/').update({
             last: vm.nameMe.toString() + ' ' + (vm.level + 1) + ' - ' + (vm.levelRival + 1) + ' ' + vm.nameRival
           })
-        } else if (this.player === 2) {
+        } else if (this.player === 2 || this.player === 3) {
+          console.log(this.player)
           this.match = this.nameMe.toString() + ' Lose ' + this.nameRival
           firebase.database().ref('events/').update({
             last: vm.nameMe.toString() + ' ' + (vm.level + 1) + ' - ' + (vm.levelRival + 1) + ' ' + vm.nameRival
@@ -338,6 +375,7 @@ export default {
           } else if (this.page === 2) {
             if (event.results[0][0].transcript === this.words[this.level].word) {
               this.waitingTime += 3
+              this.myLv++
               if (this.level === 9) {
                 this.$socket.emit('singleWords')
                 this.stepMe[this.stepMe.length - 1] = -1
@@ -346,7 +384,7 @@ export default {
               } else {
                 this.level++
                 this.word = this.words[this.level].word
-                this.example = this.words[this.level].example
+                this.howTo = this.words[this.level].example
                 this.stepMe[this.level - 1] = -1
                 this.stepMe[this.level] = this.level
               }
@@ -389,9 +427,9 @@ export default {
           })
         }
       } else if (this.page === 2) {
-        console.log('test')
         if (this.testSpeak === this.words[this.level].word) {
           this.waitingTime += 3
+          this.myLv++
           if (this.level === 9) {
             this.$socket.emit('singleWords')
             this.stepMe[this.stepMe.length - 1] = -1
@@ -400,7 +438,7 @@ export default {
           } else {
             this.level++
             this.word = this.words[this.level].word
-            this.example = this.words[this.level].example
+            this.howTo = this.words[this.level].example
             this.stepMe[this.level - 1] = -1
             this.stepMe[this.level] = this.level
           }
@@ -411,20 +449,42 @@ export default {
   mounted () {
     window.addEventListener('beforeunload', this.leaving)
     var vm = this
-    events.on('child_added', function (snapshot) {
+    Events.on('child_added', function (snapshot) {
       var item = snapshot.val()
-      vm.events[0] = item
-      // console.log(vm.events)
+      vm.events.push({item: item})
     })
-    events.on('child_changed', function (snapshot) {
+    Events.on('child_changed', function (snapshot) {
       var item = snapshot.val()
-      if (vm.events.length === 4) {
+      if (vm.events.length === 3) {
         vm.events = vm.events.slice(1, 3)
       }
-      vm.events[vm.events.length] = item
+      vm.events.push({item: item})
     })
+    Ranking.on('child_added', function (snapshot) {
+      var item = snapshot.val()
+      item.id = snapshot.key
+      vm.ranking.push(item)
+    })
+    Ranking.on('child_changed', function (snapshot) {
+      var id = snapshot.key
+      var rank = vm.ranking.find(rank => rank.id === id)
+      rank.x = snapshot.val().name
+      rank.y = snapshot.val().lv
+    })
+    Ranking.on('child_removed', function (snapshot) {
+      var id = snapshot.key
+      vm.ranking.splice(vm.ranking.findIndex(rank => rank.id === id), 1)
+    })
+  },
+  computed: {
+    ranking2: function () {
+      return _.sortBy(this.ranking, (num) => {
+        return -num.lv
+      })
+    }
   }
 }
+
 </script>
 
 <style>

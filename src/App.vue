@@ -26,7 +26,7 @@
       <input type="text"  v-model="testSpeak">
       <button @click="testSend()">OK</button>
       <button type="button" @click="changepage(1)">Home</button><br><br>
-      <div v-for="(i, index) in ranking2">
+      <div v-for="(i, index) in rankSort">
         {{index + 1}}
         {{i.name}}
         {{i.lv}}
@@ -477,7 +477,7 @@ export default {
     })
   },
   computed: {
-    ranking2: function () {
+    rankSort: function () {
       return _.sortBy(this.ranking, (num) => {
         return -num.lv
       })

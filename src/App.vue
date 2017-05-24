@@ -1,38 +1,56 @@
 <template>
-  <div id="app">
-    <div v-if="page === 0" class="page">
-      0
-      <button type="button" @click="changepage(1)">Start</button><br><br>
-      <input type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10">
-    </div>
-    <div v-else-if="page === 1" class="page">
-      1
-      <div style="border:3px solid #73AD21; width:30%; hight:30%;" @click="changepage(2)">Page2</div><br><br>
-      <div style="border:3px solid #73AD21; width:30%; hight:30%;" @click="changepage(3)">Page3</div><br><br>
-    </div>
-    <div v-else-if="page === 2" class="page">
-      2
-      <button @click="speechTest">hi</button>
-      {{waitingTime}}
-      {{nameMe}}
-      {{word}} <br> {{myLv}} <br>
-      {{howTo}} <br> <br><br>
-      {{showText}} <br>
-      <div style="float: left;" v-for="i in stepMe">
-        <img v-if="i !== -1" src="../static/images/run.gif" width= "20px" >
-        <img v-else src="../static/images/circle.png" width= "20px">
+  <div id="app" class="container-fluid">
+    <div v-if="page === 0" class="page row">
+      <div class="col-md-6 col-md-offset-3">
+        <img  class="firstPage img-rounded" @click="changepage(1)" src="../static/images/logoGame.jpg">
       </div>
-      God:
-      <input type="text"  v-model="testSpeak">
-      <button @click="testSend()">OK</button>
-      <button type="button" @click="changepage(1)">Home</button><br><br>
-      <div v-for="(i, index) in rankSort">
-        {{index + 1}}
-        {{i.name}}
-        {{i.lv}}
+      <div class="col-md-6 col-md-offset-3">
+        <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10"><br>
+        <button class="btn btn-success" type="button" @click="changepage(1)"><h4>Start</h4></button><br><br>
       </div>
     </div>
-    <div v-else-if="page === 3" class="page">
+    <div v-else-if="page === 1" class="page1 row">
+      <div class="col-md-6 box" @click="changepage(2)">
+        <img class='menu' src="../static/images/single.png">
+      </div>
+      <div class="col-md-6 box2" @click="changepage(3)">
+        <img class='menu' src="../static/images/multi.png">
+      </div>
+    </div>
+    <div v-else-if="page === 2" class="page row">
+      <p class="level">{{myLv}}</p>
+      <div class="test">
+        2
+        <button @click="speechTest">hi</button>
+        {{waitingTime}}
+        {{nameMe}}
+        {{word}} <br>
+        {{howTo}} <br> <br><br>
+        {{showText}} <br>
+        God:
+        <input type="text"  v-model="testSpeak">
+        <button @click="testSend()">OK</button>
+        <div v-for="(i, index) in rankSort">
+          {{index + 1}}
+          {{i.name}}
+          {{i.lv}}
+        </div>
+      </div>
+      <button type="button"  class="home" @click="changepage(1)">Home</button>
+      <div class="col-md-6 box-text">
+        {{word}}
+      </div>
+      <div class="col-md-6 box-text">
+        {{showText}}
+      </div>
+      <div class="run-tab">
+        <div style="float: left;" v-for="i in stepMe">
+          <img v-if="i !== -1" class="run" src="../static/images/run.gif">
+          <img v-else class="space" src="../static/images/circle.png">
+        </div>
+      </div>
+    </div>
+    <div v-else-if="page === 3" class="page row">
       3
       {{match}}
       <!-- {{nameMe}}
@@ -44,7 +62,9 @@
       <div v-else >
         {{key}}
       </div>
-      <button @click="joinRoom()">connect</button><br><br>
+      <div v-if="connectButton" >
+        <button @click="joinRoom()">connect</button><br><br>
+      </div>
       <div v-if="nameRival !== '' &&  key !== ''">
         <button v-if="!readyMe" type="button" @click="startGame(true)">Ready</button>
         <button v-else type="button" @click="startGame(false)">Cancle</button><br><br>
@@ -52,41 +72,43 @@
       <div v-for="i in events">
         {{i.item}}
       </div>
-      <button type="button" @click="changepage(1)">Home</button><br><br>
+      <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
     </div>
-    <div v-else-if="page === 4" class="page">
+    <div v-else-if="page === 4" class="page row">
       4
       {{nameMe}}
       {{nameRival}}
         <button @click="speechTest">hi</button>
         <br>
-
         <div v-if="player !== 0 && player > 1"   >
+          <p class="level">{{level + 1}}</p>
           {{waitingTime}}
-          {{word}} <br> {{level + 1}} <br>
+          {{word}}
           {{howTo}} <br> <br><br>
-          {{showText}} <br>
-          {{showText2}}
+          {{showText.message}} <br>
+          <!-- {{showText2}} -->
         </div>
-        <div style="float: left;" v-for="i in stepMe">
-          <img v-if="i !== -1" src="../static/images/run.gif" width= "20px" >
-          <img v-else src="../static/images/circle.png" width= "20px">
+        <div class="run-tab">
+          <div style="float: left;" v-for="i in stepMe">
+            <img v-if="i !== -1" class="run" src="../static/images/run.gif" >
+            <img v-else class="space" src="../static/images/circle.png">
+          </div>
+          <br>
+          <br>
+          <div style="float: left;" v-for="i in stepRival">
+            <img v-if="i !== -1 && player === 2" class="run" src="../static/images/run.gif" >
+            <img v-else-if="i !== -1 && player > 2" class="run" src="../static/images/fall.gif" >
+            <img v-else class="space" src="../static/images/circle.png" width= "20px">
+          </div>
         </div>
-        <br>
-        <div style="float: left;" v-for="i in stepRival">
-          <img v-if="i !== -1 && player === 2" src="../static/images/run.gif" width= "20px" >
-          <img v-else-if="i !== -1 && player > 2" src="../static/images/fall.gif" width= "20px" >
-          <img v-else src="../static/images/circle.png" width= "20px">
-        </div>
-        <br>
         God:
         <input type="text"  v-model="testSpeak">
         <button @click="testSend()">OK</button>
-      <button type="button" @click="changepage(1)">Home</button><br><br>
+      <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
     </div>
-    <div v-else-if="page === 5" class="page">
+    <div v-else-if="page === 5" class="page row">
       5
-      <button type="button" @click="changepage(1)">Home</button><br><br>
+      <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
     </div>
 
   </div>
@@ -95,7 +117,6 @@
 <script>
 import firebase from 'firebase'
 import _ from 'lodash'
-console.log(_.random(20))
 var config = {
   apiKey: 'AIzaSyAwb3kvmYTLSynieFFhN3GZfgU8BUi69ck',
   authDomain: 'speech-english.firebaseapp.com',
@@ -138,7 +159,8 @@ export default {
       allData: [],
       ranking: [],
       myLv: 1,
-      lvSort: []
+      lvSort: [],
+      connectButton: true
     }
   },
   sockets: {
@@ -243,6 +265,7 @@ export default {
         this.checkKey = false
         this.words = []
         this.myLv = 1
+        this.connectButton = true
       } else if (this.page === 2) {
         this.$socket.emit('singleWords')
         vm.waitingTime = 10
@@ -250,7 +273,7 @@ export default {
           vm.waitingTime--
           if (vm.waitingTime === 0) {
             var temp = {
-              id: Math.floor(Math.random() * 101),
+              id: Math.floor(Math.random() * 1010),
               lv: 99999
             }
             if (vm.ranking.length < 10) {
@@ -328,15 +351,16 @@ export default {
     },
     makeID () {
       this.$socket.emit('genRoom')
+      this.connectButton = false
     },
     joinRoom () {
       var vm = this
-      this.checkKey = true
-      this.$socket.emit('setName', {name: vm.nameMe, room: vm.key})
-      this.$socket.emit('subscribe', {room: vm.key, level: this.level})
-      // socket.on('conversation private post', function(data) {
-      //     //display data.message
-      // })
+      if (vm.key !== '') {
+        this.checkKey = true
+        this.connectButton = false
+        this.$socket.emit('setName', {name: vm.nameMe, room: vm.key})
+        this.$socket.emit('subscribe', {room: vm.key, level: this.level})
+      }
     },
     test () {
       this.$socket.emit('set', 'test')
@@ -347,21 +371,21 @@ export default {
         var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)()
         recognition.lang = 'en-US'
         recognition.interimResults = false
-        recognition.onspeechstart = function () {
-          console.log('Speech  detected')
-        }
-        recognition.onspeechend = function () {
-          console.log('Speech stopped')
-        }
+        // recognition.onspeechstart = function () {
+        //   console.log('Speech  detected')
+        // }
+        // recognition.onspeechend = function () {
+        //   console.log('Speech stopped')
+        // }
         // recognition.continuous = true
         recognition.maxAlternatives = 5
         recognition.start()
-
         recognition.onresult = function (event) {
-          // console.log('You said: ', event.results[0][0].transcript)
+          console.log('You said: ', event.results[0][0].transcript)
+          console.log(vm.page)
           var stat = vm.checkWord(event.results[0][0].transcript)
-          if (this.page === 4) {
-            if (this.level === 9) {
+          if (vm.page === 4) {
+            if (vm.level === 9) {
               vm.leaving()
               vm.page = 3
               vm.changepage(vm.page)
@@ -372,24 +396,27 @@ export default {
                 stat: stat
               })
             }
-          } else if (this.page === 2) {
-            if (event.results[0][0].transcript === this.words[this.level].word) {
-              this.waitingTime += 3
-              this.myLv++
-              if (this.level === 9) {
-                this.$socket.emit('singleWords')
-                this.stepMe[this.stepMe.length - 1] = -1
-                this.stepMe[0] = 0
-                this.level = 0
+          } else if (vm.page === 2) {
+            // console.log(event.results[0][0].transcript)
+            console.log('in 2')
+            vm.showText = event.results[0][0].transcript
+            if (event.results[0][0].transcript === vm.words[vm.level].word) {
+              vm.waitingTime += 3
+              vm.myLv++
+              if (vm.level === 9) {
+                vm.$socket.emit('singleWords')
+                vm.stepMe[vm.stepMe.length - 1] = -1
+                vm.stepMe[0] = 0
+                vm.level = 0
               } else {
-                this.level++
-                this.word = this.words[this.level].word
-                this.howTo = this.words[this.level].example
-                this.stepMe[this.level - 1] = -1
-                this.stepMe[this.level] = this.level
+                vm.level++
+                vm.word = vm.words[vm.level].word
+                vm.howTo = vm.words[vm.level].example
+                vm.stepMe[vm.level - 1] = -1
+                vm.stepMe[vm.level] = vm.level
               }
             }
-            recognition.start()
+            recognition.stop()
           }
           // vm.$socket.emit('get', event.results[0][0].transcript)
         }
@@ -411,15 +438,15 @@ export default {
       }
     },
     testSend () {
-      this.testSpeak = this.word
+      this.showText = this.testSpeak = this.word
       var vm = this
+      var stat = vm.checkWord(vm.testSpeak)
       if (this.page === 4) {
         if (this.level === 9) {
           vm.leaving()
           vm.page = 3
           vm.changepage(vm.page)
         } else {
-          var stat = vm.checkWord(vm.testSpeak)
           vm.$socket.emit('get', {
             room: vm.key,
             message: this.testSpeak,
@@ -447,6 +474,7 @@ export default {
     }
   },
   mounted () {
+    console.log(typeof window.orientation)
     window.addEventListener('beforeunload', this.leaving)
     var vm = this
     Events.on('child_added', function (snapshot) {
@@ -494,6 +522,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /*margin-top: 60px;*/
 }
 </style>
+<style src="../static/css/page1.css"> </style>

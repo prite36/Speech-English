@@ -1,0 +1,86 @@
+div {
+  /*pointer-events: none;*/
+}
+div.page {
+  background: #ffb700;
+  height: 100vh;
+}
+div.box {
+  background: #1A8EFA;
+  height: 100vh;
+  display: -webkit-flex; /* Safari */
+  -webkit-align-items: center; /* Safari 7.0+ */
+  display: flex;
+  align-items: center;
+}
+div.box2 {
+  background: #ffb700;
+  height: 100vh;
+  display: -webkit-flex; /* Safari */
+  -webkit-align-items: center; /* Safari 7.0+ */
+  display: flex;
+  align-items: center;
+}
+div.run-tab {
+  position: absolute;
+  bottom: 2%;
+}
+div.run-tab2 {
+  position: absolute;
+  bottom: 2%;
+  display: inline-block;
+}
+div.test {
+  /*เทสอันนี้*/
+  position: absolute;
+  z-index: 999;
+}
+div.box-text {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  background: #ffb700;
+  pointer-events: none;
+  height: 50vh;
+  font-size: 5em;
+}
+img {
+  display: block;
+  margin: 0 auto;
+}
+img.firstPage {
+
+  max-width: 30%;
+  height: auto;
+  width: auto\9; /* ie8 */
+}
+img.menu {
+  max-width: 100%;
+  height: auto;
+  width: auto\9; /* ie8 */
+}
+img.run {
+  max-width: 30px;
+  height: auto;
+  width: auto\9; /* ie8 */
+  z-index: 999;
+}
+img.space {
+  max-width: 20px;
+  height: auto;
+  width: auto\9; /* ie8 */
+  z-index: 999;
+}
+button.home {
+  position: absolute;
+  top: 5%;
+  right: 10%;
+  z-index: 999;
+}
+p.level {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  font-size: 1.5em;
+  z-index: 999;
+}

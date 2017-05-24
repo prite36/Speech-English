@@ -3,8 +3,8 @@ var app = express()
 var bodyParser = require('body-parser')
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
-var word = require ('./word')
-var allRoom ={}
+var word = require('./word')
+var allRoom = {}
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
@@ -13,51 +13,49 @@ app.use(function (req, res, next) {
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(express.static('dist'))
-
 io.on('connection', function (socket) {
-  socket.on('setName', function(data) {
+  socket.on('setName', function (data) {
     console.log(data)
     socket.broadcast.to(data.room).emit('getName', {
-      name: data.name,
+      name: data.name
     })
-  }),
-  socket.on('getReady', function(data) {
+  })
+  socket.on('getReady', function (data) {
     console.log(data)
-    socket.broadcast.to(data.room).emit('getReady',data.ready)
+    socket.broadcast.to(data.room).emit('getReady', data.ready)
     if (data.ready) {
       allRoom[data.room][allRoom[data.room].length - 2]++
     } else {
       allRoom[data.room][allRoom[data.room].length - 2]--
     }
-
     if (allRoom[data.room][allRoom[data.room].length - 2] === 2) {
-      socket.emit('statusPlayer',true)
+      socket.emit('statusPlayer', true)
       socket.broadcast.to(data.room).emit('statusPlayer', true)
     }
-  }),
+  })
   socket.on('get', function (data) {
-    console.log(data);
+    console.log(data)
     var inRoom = {
       key: data.room,
       word: allRoom[data.room][data.stat],
       player: allRoom[data.room][allRoom[data.room].length - 1]
     }
     socket.emit('players', inRoom)
-    console.log('sending room post', data.room);
+    console.log('sending room post', data.room)
     socket.emit('yourLevel', {
-        message: data.message,
-        who: 'me',
-        level: data.stat,
+      message: data.message,
+      who: 'me',
+      level: data.stat
     })
     socket.broadcast.to(data.room).emit('rivalLevel', {
-        message: data.message,
-        who: 'rival',
-        level: data.stat
+      message: data.message,
+      who: 'rival',
+      level: data.stat
     })
   })
-  socket.on('subscribe', function(data) {
+  socket.on('subscribe', function (data) {
     if (allRoom[data.room]) {
-      console.log('joining room', data.room);
+      console.log('joining room', data.room)
       // console.log(allRoom[data.room][allRoom[data.room].length - 1])
       var check = allRoom[data.room][allRoom[data.room].length - 1]
       if (check === 0) {
@@ -71,7 +69,7 @@ io.on('connection', function (socket) {
         socket.broadcast.to(data.room).emit('players', inRoom)
       } else if (check === 1) {
         allRoom[data.room][allRoom[data.room].length - 1] = 2
-        var inRoom = {
+        inRoom = {
           key: data.room,
           word: allRoom[data.room][0],
           player: 2
@@ -81,7 +79,7 @@ io.on('connection', function (socket) {
       } else {
         socket.emit('players', -1)
       }
-      socket.join(data.room);
+      socket.join(data.room)
     }
   })
   socket.on('genRoom', function (data) {
@@ -89,7 +87,7 @@ io.on('connection', function (socket) {
     var genWord = []
     for (var i = 0; i < word.length; i++) {
       var posi = Math.floor(Math.random() * word[i].length)
-      genWord[i] = ( word[i][posi])
+      genWord[i] = (word[i][posi])
     }
     genWord[genWord.length] = Date.now()
     genWord[genWord.length] = 0
@@ -103,7 +101,6 @@ io.on('connection', function (socket) {
       player: genWord[genWord.length - 1]
     }
     socket.emit('genRoom', waiting)
-
   })
   socket.on('remove', function (data) {
     // console.log("REMOVE " + data.room);
@@ -117,24 +114,24 @@ io.on('connection', function (socket) {
         delete allRoom[data.room]
       }
     }
-     console.log(allRoom);
+    console.log(allRoom)
   })
   socket.on('singleWords', function () {
     var genWord = []
     for (var i = 0; i < word.length; i++) {
       var posi = Math.floor(Math.random() * word[i].length)
-      genWord[i] = ( word[i][posi])
+      genWord[i] = (word[i][posi])
     }
     socket.emit('singleWords', genWord)
   })
 })
 function makeId () {
-    var text = ''
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    for (var i = 0; i < 20; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length))
-    }
-    return text
+  var text = ''
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  for (var i = 0; i < 20; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length))
+  }
+  return text
 }
 app.set('port', (process.env.PORT || 3000))
 server.listen(app.get('port'), function () {

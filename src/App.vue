@@ -2,12 +2,12 @@
   <div id="app" class="container-fluid">
     <div v-if="page === 0" class="page row">
       <div class="col-md-6 col-md-offset-3 "@click="changepage(1)">
-        <img  class="firstPage img-rounded"  src="../static/images/logoGame.jpg">
+        <img  class="firstPage img-rounded"  src="../static/images/logoGame.jpg" />
       </div>
       <div class="col-md-6 col-md-offset-3">
-        <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10"><br>
-        <!-- <button class="btn btn-success" type="button" @click="changepage(1)"><h4>Start</h4></button><br><br> -->
+        <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10" /><br/>
       </div>
+      <button class="btn btn-success" @click="changepage(1)">Start</button>
     </div>
     <!-- ////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 1" class="page1 row">
@@ -56,7 +56,6 @@
     <div v-else-if="page === 3" class="page row">
       3
       {{match}}
-      <!-- {{nameMe}}
       {{nameRival}} -->
       <div v-if="!checkKey">
         <button @click="makeID">genkey</button>
@@ -210,13 +209,20 @@ export default {
       // console.log(data)
       if (data === -1) {
         alert('More players')
+      } else if (data === -2) {
+        this.key = ''
+        this.checkKey = false
+        this.connectButton = true
+        alert('No room')
       } else if (typeof data === 'number') {
         this.player = 3
+        this.interrupt = false
       } else {
         this.key = data.key
         this.word = data.word.word
         this.howTo = data.word.example
         this.player = data.player
+        this.interrupt = false
       }
     },
     statusPlayer (bool) {
@@ -244,8 +250,9 @@ export default {
     changepage (page) {
       var vm = this
       this.page = page
+      console.log(page)
       if (this.page === 0) {
-      } else if (this.page === 1) {
+      } else if (vm.page === 1) {
         if (this.nameMe === '') {
           this.nameMe = 'Guest'
         }
@@ -364,6 +371,8 @@ export default {
         this.connectButton = false
         this.$socket.emit('setName', {name: vm.nameMe, room: vm.key})
         this.$socket.emit('subscribe', {room: vm.key, level: this.level})
+      } else {
+        alert('Please input key.')
       }
     },
     test () {

@@ -54,6 +54,8 @@ io.on('connection', function (socket) {
     })
   })
   socket.on('subscribe', function (data) {
+    console.log(data)
+    console.log(allRoom[data.room])
     if (allRoom[data.room]) {
       console.log('joining room', data.room)
       // console.log(allRoom[data.room][allRoom[data.room].length - 1])
@@ -80,6 +82,8 @@ io.on('connection', function (socket) {
         socket.emit('players', -1)
       }
       socket.join(data.room)
+    } else {
+      socket.emit('players', -2)
     }
   })
   socket.on('genRoom', function (data) {
@@ -89,7 +93,7 @@ io.on('connection', function (socket) {
       var posi = Math.floor(Math.random() * word[i].length)
       genWord[i] = (word[i][posi])
     }
-    genWord[genWord.length] = Date.now()
+    // genWord[genWord.length] = Date.now()
     genWord[genWord.length] = 0
     genWord[genWord.length] = 0
     var id = makeId()

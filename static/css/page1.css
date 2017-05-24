@@ -5,6 +5,9 @@ div.page {
   background: #ffb700;
   height: 100vh;
 }
+div.input-name {
+  margin-top: 30%;
+}
 div.box {
   background: #1A8EFA;
   height: 100vh;
@@ -50,7 +53,7 @@ img {
 }
 img.firstPage {
 
-  max-width: 30%;
+  max-width: 40%;
   height: auto;
   width: auto\9; /* ie8 */
 }

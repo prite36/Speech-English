@@ -1,14 +1,15 @@
 <template>
   <div id="app" class="container-fluid">
     <div v-if="page === 0" class="page row">
-      <div class="col-md-6 col-md-offset-3">
-        <img  class="firstPage img-rounded" @click="changepage(1)" src="../static/images/logoGame.jpg">
+      <div class="col-md-6 col-md-offset-3 "@click="changepage(1)">
+        <img  class="firstPage img-rounded"  src="../static/images/logoGame.jpg">
       </div>
       <div class="col-md-6 col-md-offset-3">
         <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10"><br>
-        <button class="btn btn-success" type="button" @click="changepage(1)"><h4>Start</h4></button><br><br>
+        <!-- <button class="btn btn-success" type="button" @click="changepage(1)"><h4>Start</h4></button><br><br> -->
       </div>
     </div>
+    <!-- ////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 1" class="page1 row">
       <div class="col-md-6 box" @click="changepage(2)">
         <img class='menu' src="../static/images/single.png">
@@ -17,6 +18,7 @@
         <img class='menu' src="../static/images/multi.png">
       </div>
     </div>
+    <!-- ///////////////////////////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 2" class="page row">
       <p class="level">{{myLv}}</p>
       <div class="test">
@@ -50,6 +52,7 @@
         </div>
       </div>
     </div>
+    <!-- ////////////////////////////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 3" class="page row">
       3
       {{match}}
@@ -74,6 +77,7 @@
       </div>
       <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
     </div>
+    <!-- ///////////////////////////////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 4" class="page row">
       4
       {{nameMe}}
@@ -106,6 +110,7 @@
         <button @click="testSend()">OK</button>
       <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
     </div>
+    <!-- //////////////////////////////////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 5" class="page row">
       5
       <button type="button" class="home" @click="changepage(1)">Home</button><br><br>
@@ -240,7 +245,6 @@ export default {
       var vm = this
       this.page = page
       if (this.page === 0) {
-
       } else if (this.page === 1) {
         if (this.nameMe === '') {
           this.nameMe = 'Guest'

@@ -56,7 +56,6 @@
     <div v-else-if="page === 3" class="page row">
       3
       {{match}}
-      <!-- {{nameMe}}
       {{nameRival}} -->
       <div v-if="!checkKey">
         <button @click="makeID">genkey</button>

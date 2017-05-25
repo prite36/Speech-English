@@ -1,20 +1,18 @@
 <template>
   <div id="app" class="container-fluid">
     <div v-if="page === 0" class="page row">
-      <div class="col-md-6 col-md-offset-3 "@click="changepage(1)">
+      <div class="content" @click="changepage(1)">
         <img  class="firstPage img-rounded"  src="../static/images/logoGame.jpg" />
       </div>
-      <div class="col-md-6 col-md-offset-3">
-        <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10" /><br/>
-      </div>
+      <input class="form-control" type="text" v-model="nameMe" placeholder="Guest [0-10]" autofocus maxlength="10" /><br/>
       <button class="btn btn-success" @click="changepage(1)">Start</button>
     </div>
     <!-- ////////////////////////////////////////////////////////////////////// -->
     <div v-else-if="page === 1" class="page1 row">
-      <div class="col-md-6 box" @click="changepage(2)">
+      <div class="box" @click="changepage(2)">
         <img class='menu' src="../static/images/single.png">
       </div>
-      <div class="col-md-6 box2" @click="changepage(3)">
+      <div class="box2" @click="changepage(3)">
         <img class='menu' src="../static/images/multi.png">
       </div>
     </div>
@@ -39,10 +37,10 @@
         </div>
       </div>
       <button type="button"  class="home" @click="changepage(1)">Home</button>
-      <div class="col-md-6 box-text">
+      <div class="box-text">
         {{word}}
       </div>
-      <div class="col-md-6 box-text">
+      <div class="box-text">
         {{showText}}
       </div>
       <div class="run-tab">
@@ -440,7 +438,7 @@ export default {
       if (val.toLowerCase() === this.word) {
         this.speechTest()
         this.waitingTime += 3
-        if (this.level === 9) {
+        if (this.level === 9 && this.page === 4) {
           this.page = 3
           this.changepage(this.page)
         }

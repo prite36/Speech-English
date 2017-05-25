@@ -10,7 +10,7 @@ div.input-name {
 }
 div.box {
   background: #1A8EFA;
-  height: 100vh;
+  height: 50vh;
   display: -webkit-flex; /* Safari */
   -webkit-align-items: center; /* Safari 7.0+ */
   display: flex;
@@ -18,7 +18,7 @@ div.box {
 }
 div.box2 {
   background: #ffb700;
-  height: 100vh;
+  height: 50vh;
   display: -webkit-flex; /* Safari */
   -webkit-align-items: center; /* Safari 7.0+ */
   display: flex;
@@ -41,7 +41,7 @@ div.test {
 div.box-text {
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   background: #ffb700;
   pointer-events: none;
   height: 50vh;
@@ -52,13 +52,13 @@ img {
   margin: 0 auto;
 }
 img.firstPage {
-
-  max-width: 40%;
+  /*max-height: 400px;*/
+  max-width: 100%;
   height: auto;
   width: auto\9; /* ie8 */
 }
 img.menu {
-  max-width: 100%;
+  max-width: 70%;
   height: auto;
   width: auto\9; /* ie8 */
 }
@@ -86,4 +86,41 @@ p.level {
   right: 5%;
   font-size: 1.5em;
   z-index: 999;
+}
+@media (min-width: 600px) {
+  img.firstPage {
+    /*max-height: 400px;*/
+    max-width: 40%;
+    height: auto;
+    width: auto\9; /* ie8 */
+  }
+  div.box {
+    background: #1A8EFA;
+    height: 100vh;
+    width: 50%;
+    display: -webkit-flex; /* Safari */
+    -webkit-align-items: center; /* Safari 7.0+ */
+    display: flex;
+    align-items: center;
+    float: left;
+  }
+  div.box2 {
+    background: #ffb700;
+    height: 100vh;
+    width: 50%;
+    display: -webkit-flex; /* Safari */
+    -webkit-align-items: center; /* Safari 7.0+ */
+    display: flex;
+    align-items: center;
+  }
+  div.box-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffb700;
+    pointer-events: none;
+    height: 100vh;
+    width: 50%;
+    float: left;
+  }
 }
